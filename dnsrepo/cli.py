@@ -4,7 +4,8 @@ import argparse
 import sys
 
 from .ct import import_ct_observations
-from .errors import ZoneError
+from .errors import HandoffError, ZoneError
+from .handoff import inspect_handoff, pack_handoff
 from .repo import Repository
 from .traffic import attribute_flows
 
@@ -117,6 +118,63 @@ def cmd_ct_import(args):
     return 0
 
 
+def _parse_selections(pairs):
+    selections = []
+    for pair in pairs:
+        if "=" not in pair:
+            raise HandoffError("selection %r must look like ZONE=SERIAL"
+                               % pair)
+        zone, _, serial = pair.rpartition("=")
+        if not serial.isdigit():
+            raise HandoffError("selection %r has a non-numeric serial"
+                               % pair)
+        selections.append((zone, int(serial)))
+    return selections
+
+
+def cmd_handoff_pack(args):
+    report = pack_handoff(args.db, _parse_selections(args.selections),
+                          args.package)
+    print("packed %d zone(s), %d snapshot(s), %d record(s) -> %s"
+          % (len(report.zones), report.snapshot_count,
+             report.record_count, report.path))
+    for zone in report.zones:
+        print("zone %s: %d snapshot(s), %d record(s)"
+              % (zone.name, len(zone.snapshots), zone.record_count))
+    print("sha256: %s" % report.sha256)
+    return 0
+
+
+def cmd_handoff_inspect(args):
+    report = inspect_handoff(args.package)
+    print("package %s: format ok, integrity ok (sha256 %s)"
+          % (report.path, report.sha256[:16] + "..."))
+    print("%d zone(s), %d snapshot(s), %d record(s)"
+          % (len(report.zones), report.snapshot_count,
+             report.record_count))
+    for zone in report.zones:
+        print("zone %s: %d snapshot(s), %d record(s)"
+              % (zone.name, len(zone.snapshots), zone.record_count))
+        for snap in zone.snapshots:
+            print("  #%d serial=%d kind=%s records=%d source=%s at=%s"
+                  % (snap.position, snap.serial, snap.kind,
+                     snap.record_count, snap.source_file or "-",
+                     snap.created_at))
+    return 0
+
+
+def cmd_handoff_receive(args):
+    with _repo(args) as repo:
+        report = repo.receive_handoff(args.package)
+    print("received %s: %d snapshot(s) reused, %d appended"
+          % (report.path, report.reused, report.appended))
+    for outcome in report.outcomes:
+        print("zone %s: reused=%d appended=%d head serial=%s"
+              % (outcome.zone, outcome.reused, outcome.appended,
+                 outcome.head_serial))
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="dnsrepo",
@@ -193,6 +251,26 @@ def build_parser():
     p.add_argument("--serial", required=True, type=int,
                    help="published serial whose records suppress findings")
     p.set_defaults(func=cmd_ct_import)
+
+    p = sub.add_parser(
+        "handoff-pack",
+        help="pack selected zone history from --db into a handoff package")
+    p.add_argument("package", help="package file to create (must not exist)")
+    p.add_argument("selections", nargs="+", metavar="ZONE=SERIAL",
+                   help="zone and its cutoff serial (each zone once)")
+    p.set_defaults(func=cmd_handoff_pack)
+
+    p = sub.add_parser(
+        "handoff-inspect",
+        help="verify a handoff package and list its contents")
+    p.add_argument("package", help="package file to inspect")
+    p.set_defaults(func=cmd_handoff_inspect)
+
+    p = sub.add_parser(
+        "handoff-receive",
+        help="splice a handoff package into the --db repository")
+    p.add_argument("package", help="package file to receive")
+    p.set_defaults(func=cmd_handoff_receive)
 
     return parser
 

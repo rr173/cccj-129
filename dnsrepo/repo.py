@@ -85,38 +85,53 @@ class Repository:
         parsed = parse_master(text, zone,
                               preserve_unknown=self.preserve_unknown)
         serial = validate_zone(parsed.records, zone)
-        zrow = self.store.ensure_zone(zone)
-        current = self.store.current_version(zrow["id"])
-        if current is not None and not serial_gt(serial, current["serial"]):
-            raise SerialError(
-                "master file serial %d does not increase over current "
-                "serial %d" % (serial, current["serial"]))
-        version_id = self.store.publish(zrow["id"], serial, "master",
-                                        source_file, parsed.records)
+        with self.store.write_txn():
+            zrow = self.store.ensure_zone(zone)
+            current = self.store.current_version(zrow["id"])
+            if (current is not None
+                    and not serial_gt(serial, current["serial"])):
+                raise SerialError(
+                    "master file serial %d does not increase over current "
+                    "serial %d" % (serial, current["serial"]))
+            version_id = self.store.publish(zrow["id"], serial, "master",
+                                            source_file, parsed.records)
         return self._version_info(zrow["id"], version_id)
 
     def publish_increment(self, text, source_file=None):
         """Parse, check and publish an increment against its baseline."""
         inc = parse_increment(text, preserve_unknown=self.preserve_unknown)
-        zrow = self.store.get_zone(inc.zone)
-        current = (self.store.current_version(zrow["id"])
-                   if zrow is not None else None)
-        if current is None:
-            raise PrereqError("no baseline published for zone %s" % inc.zone)
-        if current["serial"] != inc.prereq:
-            raise PrereqError(
-                "increment requires baseline serial %d but current serial "
-                "is %d" % (inc.prereq, current["serial"]))
-        if not serial_gt(inc.serial, inc.prereq):
-            raise SerialError(
-                "increment serial %d does not increase over prerequisite "
-                "%d" % (inc.serial, inc.prereq))
-        base = self.store.version_records(current["id"])
-        new_records = apply_increment(base, inc, inc.zone)
-        validate_zone(new_records, inc.zone, inc.serial)
-        version_id = self.store.publish(zrow["id"], inc.serial, "increment",
-                                        source_file, new_records)
+        with self.store.write_txn():
+            zrow = self.store.get_zone(inc.zone)
+            current = (self.store.current_version(zrow["id"])
+                       if zrow is not None else None)
+            if current is None:
+                raise PrereqError("no baseline published for zone %s"
+                                  % inc.zone)
+            if current["serial"] != inc.prereq:
+                raise PrereqError(
+                    "increment requires baseline serial %d but current "
+                    "serial is %d" % (inc.prereq, current["serial"]))
+            if not serial_gt(inc.serial, inc.prereq):
+                raise SerialError(
+                    "increment serial %d does not increase over "
+                    "prerequisite %d" % (inc.serial, inc.prereq))
+            base = self.store.version_records(current["id"])
+            new_records = apply_increment(base, inc, inc.zone)
+            validate_zone(new_records, inc.zone, inc.serial)
+            version_id = self.store.publish(zrow["id"], inc.serial,
+                                            "increment", source_file,
+                                            new_records)
         return self._version_info(zrow["id"], version_id)
+
+    def receive_handoff(self, package_path):
+        """Splice a verified handoff package into this repository.
+
+        The whole package is one commit boundary: any conflict, package
+        error or database failure rolls every zone back.  See
+        :mod:`dnsrepo.handoff` for the format and the splice rules.
+        """
+        from .handoff import receive_handoff
+        return receive_handoff(self, package_path)
 
     # --------------------------------------------------------------
     # queries

@@ -27,6 +27,9 @@ SQLite 中可查询的不可变版本，支持版本差异、当前区查询与�
 - 离线批处理：流量归属（连接 × 网段 → 可分团队核算的字节明细）与证书透明度
   观测导入（CT 观测 × 指定历史版本 → 待核查主机名发现）；两者都只读仓库、
   不查真实 DNS、不发布记录
+- 离线历史交接：从旧库选出若干 zone 及各自截止 serial 打出自包含交接包，
+  接收库核查后把能衔接的历史接进自己的库（复用相同前缀、只追加尾段），
+  交接末端继续日常增量发布
 
 ## 文件格式
 
@@ -109,6 +112,9 @@ python -m dnsrepo --db assets.db diff example.com. 2024010100 2024010101
 python -m dnsrepo --db assets.db export example.com. -o example.com.zone
 python -m dnsrepo --db assets.db ct-import observations.jsonl out \
     --repo assets.db --zone example.com. --serial 2024010100
+python -m dnsrepo --db old.db handoff-pack handoff.dhf example.com.=2024010101
+python -m dnsrepo handoff-inspect handoff.dhf
+python -m dnsrepo --db new.db handoff-receive handoff.dhf
 ```
 
 加 `--preserve-unknown` 后未知类型按原文保留。
@@ -288,11 +294,143 @@ python3 -m dnsrepo --db assets.db ct-import a.jsonl b.jsonl out \
   发现名称、约 5000 张证书的生成数据（37 MB 输入）峰值 RSS 约 35 MB。
 - 可复现样例见 [`examples/ct/`](examples/ct/README.md)。
 
+## 离线历史交接（交接包）
+
+机房撤并时，旧库要把一部分 zone 的历史移交给**已经在使用**的接收库：不能
+拿旧库整体覆盖，也不能把历史压扁成一份今天才导入的区文件。交接分三步：
+旧库**打包** → 接收方**核查** → 接收库**接入**。可复跑示例见
+[`examples/handoff/`](examples/handoff/README.md)。
+
+### 交接单与打包
+
+```
+python3 -m dnsrepo --db old.db handoff-pack handoff.dhf \
+    alpha.example.=300 beta.example.=1
+```
+
+```python
+from dnsrepo import pack_handoff
+pack_handoff("old.db", {"alpha.example.": 300, "beta.example.": 1},
+             "handoff.dhf")
+```
+
+- 每个 zone 只可选一次；所选截止 serial 必须已经成功发布。
+- 包中包含该 zone **第一次发布至截止点的每一份已发布快照**（位置按入库
+  先后编号，serial 回绕不改变位置），排除后续历史与未选对象。
+- 打包期间旧库可继续读写：所有选择、版本与条目来自**同一次一致读视图**
+  （WAL 下的一条读事务，不停写、不执行 Store 的初始化/恢复更新，也不漏掉
+  已提交内容）。另一进程用一个事务同时更新两个 zone 时，包要么看到两个
+  新、要么看到两个旧，绝不只带走一半。
+- 打包目标路径必须不存在（拒绝覆盖）；包先写临时文件、算完整性摘要后
+  原子落位，中途失败的包不会被识别为完成。
+
+### 包格式（自包含、可核查）
+
+UTF-8 JSON Lines，每行一个对象（键排序的规范 JSON）：
+
+```
+{"type":"header","format":"dnsrepo-handoff","format_version":1,...}
+{"type":"zone","name":"alpha.example.","snapshots":2}
+{"type":"snapshot","zone":"alpha.example.","position":1,"serial":100,
+ "kind":"master","source_file":"alpha/v1.zone","created_at":"...","records":7}
+{"type":"record","owner":"www.alpha.example.","rtype":"A","ttl":300,
+ "rdata":"192.0.2.80","known":true,"line_no":6,
+ "origin_zone":"alpha.example.","origin_position":1,
+ "source_file":"alpha/v1.zone"}
+...
+{"type":"trailer","zones":2,"snapshots":5,"records":27,"sha256":"..."}
+```
+
+- 每份快照记录 `serial`、`kind`、`source_file`、`created_at`；每个条目记录
+  `owner`、`rtype`、`ttl`、`rdata`、`known`、`line_no` 与**最初引入它的快照
+  位置**（`origin_zone` + `origin_position`）。源库的行 id 没有跨库含义，
+  起源一律用包内位置坐标连接。
+- `source_file`、`line_no` 可以是 `null`；`null` 与空字符串、其他行号都
+  不相等。已存文本（含 TXT 与未知类型）按原值搬运，不绕区文件解析。
+- 来源路径只是字符串：接收程序不会据此打开文件或执行命令。
+- trailer 的 `sha256` 覆盖此前全部行：截断与篡改在语义检查前就会被发现。
+
+### 核查（独立入口）
+
+```
+python3 -m dnsrepo handoff-inspect handoff.dhf
+```
+
+```python
+from dnsrepo import inspect_handoff
+report = inspect_handoff("handoff.dhf")   # zones -> snapshots -> 条目数
+```
+
+列出交接对象、每份快照的位置/serial/kind/来源/条目数，并校验完整性与
+语义：重复 zone/serial、错误发布次序（RFC 1982 不递增）、坏字段、不符合
+现有 zone 语义的快照（越界属主、SOA 不唯一或 serial 不符、CNAME 冲突等）
+一律拒绝。起源坐标只能落在本 zone 的当前或更早位置；对应起源快照里必须
+存在各字段一致、且自指该起源的条目。指向别区、未来、不存在的版本，或
+声称的来源文件与起源元数据不符，均为坏包。核查不猜测原文件内容，也不
+恢复当年的操作指令。
+
+### 接入裁定（只有"可衔接"或"冲突"）
+
+设包内某 zone 的历史为 `P1…Pn`，接收库已有 `T1…Tm`（缺少的 zone 按
+`m=0` 处理）：
+
+- **可衔接**：`m ≤ n` 且每个 `Ti` 与 `Pi` 相同。"相同"是整份快照的元数据
+  （serial、kind、source_file、created_at）、条目（owner/rtype/ttl/rdata/
+  known/line_no）与起源坐标全部相同；只忽略条目排列与数据库行 id。即便
+  DNS 答案相同，起源、行号或发布时间不同也不能复用。
+- **冲突**：`m > n`（接收库历史更长，不退头），或任一位置不相同（不凭
+  serial 较新就覆盖另一条历史）。冲突报告定位 zone、serial 与不符类别
+  （`target-longer` / `serial` / `metadata` / `records`）。
+
+通过后复用前 `m` 份、只追加尾段，各选中 zone 的头落在 `Pn`；其他对象
+不受影响。接收时给每个新版本安排目标 id，所有起源引用（含复用前缀指向
+的版本）都映射到目标库的正确版本，不直接拷贝整数外键。原样再接收同一
+个包：无新增、无修改。
+
+```
+python3 -m dnsrepo --db new.db handoff-receive handoff.dhf
+```
+
+```python
+repo = Repository("new.db")
+report = repo.receive_handoff("handoff.dhf")   # 逐 zone 的 reused/appended/head
+```
+
+### 原子性与并发
+
+整张交接单是一个提交边界：后面的 zone 冲突、语义检查不成立、包被截断
+或篡改、写入中发生真正的数据库错误，都撤销本次全部改动——不留空 zone、
+不留半段历史，重新打开库也一样。核对与写入在同一个写事务内完成
+（`BEGIN IMMEDIATE` 之后才开始读目标库状态），正常发布或另一个接收者
+竞争同一目标时，等待锁之后不会拿等待前的判断继续落库；现有的
+`publish-master` / `publish-increment` 也在同一写事务内复核前置 serial，
+提前读取了基线的增量不会在交接完成后带着旧前置条件落库。
+
+### 失败后的重新操作
+
+- 打包失败（未知 zone、未发布的 serial、目标已存在）：修正后重打即可，
+  源库不受任何影响。
+- 核查失败：包损坏或内容不符，重新从旧库打包；接收库尚未被触碰。
+- 接入冲突：先解决分歧（例如用正确的包、或确认接收库该 zone 的历史应当
+  以哪条线为准后人工调整），再重新接收同一个包；失败的接收没有留下任何
+  改动，可安全重试。
+- 接入成功后发现需要再交更多历史：用更大的截止 serial 重新打包，接收时
+  已衔接的前缀自动复用，只追加新的尾段。
+
+内存上界是当前一份快照加磁盘上的起源索引（临时 SQLite，缓存限 16 MB）：
+打包、检查、历史比较与引用查找都不把全包、全部条目或 id 映射装入内存。
+11 万条跨版本条目走 `handoff-pack` / `handoff-inspect` /
+`handoff-receive` 三条命令各约 1 秒、峰值 RSS 约 32 MB
+（`tests/test_handoff.py` 的 ScaleTest）。
+
 ## 设计要点
 
 - **发布原子性**：版本行（`publishing`）+ 全量记录 + 头指针切换在同一个
   SQLite 事务内完成；任何中途失败/进程终止都整体回滚。打开库时会兜底把残留
   的 `publishing` 行标记为 `failed`（正常路径下不存在）。
+- **写事务边界**：所有"先核对再落库"的路径（发布、交接接收）都在
+  `BEGIN IMMEDIATE` 开启的同一事务内完成核对与写入——写锁之后的读才是
+  有效判断，竞争同一 zone 的发布/接收不会拿过期基线落库。
 - **记录溯源**：`records.introduced_in` 指向引入该记录的版本，`line_no` 是该
   版本源文件中的起始行号；增量携带的记录在后续版本中保持原始行号不变。
 - **serial 算术**：RFC 1982。新 serial 必须在序列号空间上严格大于旧 serial
@@ -325,3 +463,13 @@ IPv4-mapped 区分、历史版本 DNS 标签、坏行与重复 `flow_id` 整批�
 分开成行、冲突重复键整批拒绝、空输入、坏行行号、只读仓库不留旁文件、
 行重排与重复不改变输出，以及与独立字典实现的随机交叉核对和 20 万观测的生成
 数据运行（`tests/test_ct.py`、`tests/ct_reference.py`）。
+
+历史交接另有：可复跑全链路（两待交 zone + 一不交 zone、未动条目延续、删掉后
+重加、TXT、未知类型、serial 回绕、接收库 id 错开与相同短前缀、独立 SQL 核对、
+幂等再接收、末端继续增量）；打包侧的一致读视图（进程内与跨进程的两 zone 同事务
+提交只可能同新或同旧）、源库不被修改、拒绝覆盖；核查侧的重复 zone/serial、
+错误次序、坏字段、zone 语义、跨区/未来/缺失起源、来源文件不符（摘要均重算，
+截断另测）；接收侧的同值不同来源各类冲突、目标更长、serial 较新不覆盖、
+后续 zone 失败整体回滚、数据库写错误回滚并重开验证、接收与发布/另一接收者
+竞争不丢历史，以及 11 万条跨版本条目走三条命令的规模运行
+（`tests/test_handoff.py`）。

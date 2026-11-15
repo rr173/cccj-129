@@ -63,3 +63,35 @@ class BatchError(ZoneError):
                 location = "%s:%d" % (source, line)
             message = "%s: %s" % (location, message)
         super().__init__(message)
+
+
+class HandoffError(ZoneError):
+    """A handoff package is unreadable, corrupt or semantically invalid.
+
+    Also raised when a package cannot be produced from the source
+    repository (unknown zone, unpublished cutoff serial, ...).
+    ``line`` is the 1-based line number inside the package when the
+    problem is located in the package file.
+    """
+
+    def __init__(self, message, line=None):
+        self.line = line
+        if line is not None:
+            message = "package line %d: %s" % (line, message)
+        super().__init__(message)
+
+
+class HandoffConflict(ZoneError):
+    """The receiving repository's history cannot be spliced with the
+    package: for some zone the receiver already carries versions that
+    do not match the package prefix (or carries more versions than the
+    package).  ``conflicts`` is a list of Conflict namedtuples locating
+    every divergence found (zone, serial, category, detail)."""
+
+    def __init__(self, conflicts):
+        self.conflicts = list(conflicts)
+        lines = ["handoff package conflicts with the receiving repository:"]
+        for c in self.conflicts:
+            lines.append("  zone %s serial %s: %s (%s)"
+                         % (c.zone, c.serial, c.category, c.detail))
+        super().__init__("\n".join(lines))

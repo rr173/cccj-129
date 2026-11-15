@@ -6,10 +6,12 @@ queryable versions into SQLite.  Never talks to a live DNS server.
 """
 
 from .errors import (BatchError, CNAMEConflictError, CNAMELoopError,
-                     DeltaError, OutOfZoneError, ParseError, PrereqError,
+                     DeltaError, HandoffConflict, HandoffError,
+                     OutOfZoneError, ParseError, PrereqError,
                      SerialError, UnknownTypeError, ValidationError,
                      ZoneError)
 from .ct import CtResult, import_ct_observations, normalize_name
+from .handoff import (inspect_handoff, pack_handoff, receive_handoff)
 from .increment import apply_increment, parse_increment
 from .repo import Repository
 from .records import Record, serial_gt
@@ -31,6 +33,9 @@ __all__ = [
     "import_ct_observations",
     "normalize_name",
     "CtResult",
+    "pack_handoff",
+    "inspect_handoff",
+    "receive_handoff",
     "ZoneError",
     "ParseError",
     "UnknownTypeError",
@@ -42,4 +47,6 @@ __all__ = [
     "PrereqError",
     "DeltaError",
     "BatchError",
+    "HandoffError",
+    "HandoffConflict",
 ]

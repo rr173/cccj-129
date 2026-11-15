@@ -4,9 +4,15 @@ Each publish is a single SQLite transaction: insert the version row
 (status 'publishing'), insert all records, mark the version 'published'
 and move the zone head.  A crash or failure anywhere rolls the whole
 transaction back, so the repository is never left half-published.
+
+All check-and-write sequences (publishing, handoff receive) run inside
+``Store.write_txn``: the write lock is taken with ``BEGIN IMMEDIATE``
+*before* any state is read, so a decision made after waiting for the
+lock is never based on pre-wait reads.
 """
 
 import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
 from .records import Record
@@ -69,6 +75,27 @@ class Store:
             self.conn.execute(
                 "UPDATE versions SET status='failed' WHERE status='publishing'")
 
+    @contextmanager
+    def write_txn(self):
+        """One atomic write transaction holding the write lock throughout.
+
+        The lock is acquired (``BEGIN IMMEDIATE``) before any statement
+        of the caller runs, so checks performed inside the block observe
+        the state that the commit will actually build on.  Any exception
+        rolls everything back.
+        """
+        self.conn.execute("BEGIN IMMEDIATE")
+        try:
+            yield
+        except BaseException:
+            self.conn.rollback()
+            raise
+        try:
+            self.conn.commit()
+        except BaseException:
+            self.conn.rollback()
+            raise
+
     # --------------------------------------------------------------
     # zones
     # --------------------------------------------------------------
@@ -77,13 +104,17 @@ class Store:
             "SELECT * FROM zones WHERE name = ?", (name,)).fetchone()
 
     def ensure_zone(self, name):
+        """Return the zone row, creating the zone if needed.
+
+        The insert (if any) happens in the caller's transaction; callers
+        must hold ``write_txn`` (or commit themselves).
+        """
         row = self.get_zone(name)
         if row is not None:
             return row
-        with self.conn:
-            self.conn.execute(
-                "INSERT INTO zones (name, created_at) VALUES (?, ?)",
-                (name, _now()))
+        self.conn.execute(
+            "INSERT INTO zones (name, created_at) VALUES (?, ?)",
+            (name, _now()))
         return self.get_zone(name)
 
     def list_zones(self):
@@ -143,20 +174,25 @@ class Store:
     # publishing
     # --------------------------------------------------------------
     def publish(self, zone_id, serial, kind, source_file, records):
-        """Atomically publish a full snapshot; returns the version id."""
-        with self.conn:  # commits on success, rolls back on any error
-            version_id = self._insert_version(zone_id, serial, kind,
-                                              source_file)
-            self._insert_records(version_id, records)
-            self._finalize(zone_id, version_id)
+        """Insert a full snapshot; returns the version id.
+
+        Runs inside the caller's ``write_txn``: the version row, its
+        records and the head move commit or roll back together with
+        everything else in that transaction.
+        """
+        version_id = self._insert_version(zone_id, serial, kind,
+                                          source_file)
+        self._insert_records(version_id, records)
+        self._finalize(zone_id, version_id)
         return version_id
 
-    def _insert_version(self, zone_id, serial, kind, source_file):
+    def _insert_version(self, zone_id, serial, kind, source_file,
+                        created_at=None):
         cur = self.conn.execute(
             "INSERT INTO versions (zone_id, serial, kind, status, "
             "                     source_file, created_at) "
             "VALUES (?, ?, ?, 'publishing', ?, ?)",
-            (zone_id, serial, kind, source_file, _now()))
+            (zone_id, serial, kind, source_file, created_at or _now()))
         return cur.lastrowid
 
     def _insert_records(self, version_id, records):
