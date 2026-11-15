@@ -45,3 +45,21 @@ class PrereqError(ZoneError):
 
 class DeltaError(ZoneError):
     """An increment directive does not match the baseline content."""
+
+
+class BatchError(ZoneError):
+    """A traffic attribution batch was rejected as a whole.
+
+    ``source`` names the rejected input file (or is None for output and
+    repository problems); ``line`` is the 1-based line number inside it.
+    """
+
+    def __init__(self, message, source=None, line=None):
+        self.source = source
+        self.line = line
+        if source is not None:
+            location = source
+            if line is not None:
+                location = "%s:%d" % (source, line)
+            message = "%s: %s" % (location, message)
+        super().__init__(message)

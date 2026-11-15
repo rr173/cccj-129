@@ -5,12 +5,14 @@ CNAME conflicts/loops, serial arithmetic), and publishes immutable,
 queryable versions into SQLite.  Never talks to a live DNS server.
 """
 
-from .errors import (CNAMEConflictError, CNAMELoopError, DeltaError,
-                     OutOfZoneError, ParseError, PrereqError, SerialError,
-                     UnknownTypeError, ValidationError, ZoneError)
+from .errors import (BatchError, CNAMEConflictError, CNAMELoopError,
+                     DeltaError, OutOfZoneError, ParseError, PrereqError,
+                     SerialError, UnknownTypeError, ValidationError,
+                     ZoneError)
 from .increment import apply_increment, parse_increment
 from .repo import Repository
 from .records import Record, serial_gt
+from .traffic import attribute_flows
 from .validate import validate_zone
 from .zonefile import parse_master
 
@@ -24,6 +26,7 @@ __all__ = [
     "apply_increment",
     "validate_zone",
     "serial_gt",
+    "attribute_flows",
     "ZoneError",
     "ParseError",
     "UnknownTypeError",
@@ -34,4 +37,5 @@ __all__ = [
     "SerialError",
     "PrereqError",
     "DeltaError",
+    "BatchError",
 ]

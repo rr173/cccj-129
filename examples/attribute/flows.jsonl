@@ -1,0 +1,3 @@
+{"flow_id": "hand-1", "dst_ip": "10.0.0.1", "start_ms": 10, "end_ms": 110, "bytes": 17}
+{"flow_id": "hand-2", "dst_ip": "10.0.0.2", "start_ms": 0, "end_ms": 40, "bytes": 40}
+{"flow_id": "v6-1", "dst_ip": "2001:db8::5", "start_ms": 0, "end_ms": 50, "bytes": 5}

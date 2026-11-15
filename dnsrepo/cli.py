@@ -5,6 +5,7 @@ import sys
 
 from .errors import ZoneError
 from .repo import Repository
+from .traffic import attribute_flows
 
 
 def _repo(args):
@@ -85,6 +86,20 @@ def cmd_export(args):
     return 0
 
 
+def cmd_attribute(args):
+    result = attribute_flows(
+        args.flows, args.ownership, args.output,
+        repo_path=args.repo, zone=args.zone, serial=args.serial)
+    print("attributed %d flows into %d fragments, %d bytes -> %s"
+          % (result.flows, result.fragments, result.bytes_total,
+             result.output))
+    for status in ("assigned", "ambiguous", "unassigned"):
+        print("%s: %d bytes" % (status, result.statuses.get(status, 0)))
+    for owner, count in result.owner_bytes.items():
+        print("owner %s: %d bytes" % (owner, count))
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="dnsrepo",
@@ -134,6 +149,18 @@ def build_parser():
     p.add_argument("--serial", type=int)
     p.add_argument("-o", "--output")
     p.set_defaults(func=cmd_export)
+
+    p = sub.add_parser(
+        "attribute",
+        help="attribute connection bytes to network owners (offline batch)")
+    p.add_argument("flows", help="connection summaries JSONL")
+    p.add_argument("ownership", help="ownership facts JSONL")
+    p.add_argument("output", help="output directory (must not exist)")
+    p.add_argument("--repo", help="repository to read DNS labels from")
+    p.add_argument("--zone", help="zone whose version supplies DNS labels")
+    p.add_argument("--serial", type=int,
+                   help="published serial whose A/AAAA owners are attached")
+    p.set_defaults(func=cmd_attribute)
 
     return parser
 

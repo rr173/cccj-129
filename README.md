@@ -108,6 +108,97 @@ python -m dnsrepo --db assets.db export example.com. -o example.com.zone
 
 加 `--preserve-unknown` 后未知类型按原文保留。
 
+## 离线流量归属（批处理）
+
+连接汇总（`flow_id`、`dst_ip`、`start_ms`、`end_ms`、`bytes`）与网段归属
+（`cidr`、`owner`、`valid_from_ms`、`valid_to_ms`）各是一个 UTF-8 JSONL
+文件。批处理把它们拆成**可分团队核算的归属明细**，不改写任何区域版本：
+
+```
+python3 -m dnsrepo --db assets.db attribute flows.jsonl ownership.jsonl out \
+    [--repo assets.db --zone example.com. --serial 2024010100]
+```
+
+### 输入字段
+
+连接行：
+
+| 字段 | 规则 |
+| --- | --- |
+| `flow_id` | 非空字符串，同文件内不得重复 |
+| `dst_ip` | 合法 IPv4 或 IPv6 地址；IPv4-mapped IPv6 仍按 IPv6 处理 |
+| `start_ms` / `end_ms` | 64 位有符号整数，`start_ms < end_ms`，区间左闭右开 |
+| `bytes` | 64 位有符号整数，`>= 0` |
+
+归属行：
+
+| 字段 | 规则 |
+| --- | --- |
+| `cidr` | 规范 CIDR（无主机位），IPv4 或 IPv6 |
+| `owner` | 非空字符串 |
+| `valid_from_ms` / `valid_to_ms` | 64 位有符号整数，`from < to`，左闭右开 |
+
+非法行报 `文件:1起始行号` 并整批拒绝。空连接文件产出空明细。
+
+### 归属规则
+
+对每个目的 IP 的每个时刻，只看**当时有效且包含该 IP** 的归属行，取
+**最长前缀**：
+
+- 最长前缀下只有一个不同 `owner` → `assigned`
+- 最长前缀下多个不同 `owner` → `ambiguous`，列出排序后的 owner；不挑一个、
+  不退回更宽网段、不重复计量
+- 没有候选 → `unassigned`
+- 同一 owner 的重复行不制造歧义；窄网段失效后可重新落到仍有效的宽网段
+
+连接按状态与 owner 集合切成**最大连续区间**（相同状态与 owner 集合的相邻
+片段合并）。被更窄网段遮住的宽网段边界、同归属重复资料的边界，都不会留下
+无意义切口。
+
+### 字节分摊（整数、守恒）
+
+每条连接的 `bytes` 在**最终合并后**的片段间分摊：
+
+1. 每段先取 `floor(bytes * 时长 / 总时长)`；
+2. 剩余字节按余数从大到小逐一补足，余数相同按片段开始时间较早者优先；
+3. `assigned`、`ambiguous`、`unassigned` 全部参与；零字节片段保留。
+
+不使用浮点；每条连接的片段时间无缝覆盖原区间，字节和等于输入。
+
+### 输出
+
+`out/details.jsonl`（按输入行号、片段起点排列）：
+
+| 字段 | 说明 |
+| --- | --- |
+| `flow_id` / `line_no` | 原连接标识与该输入文件的 1 起始行号 |
+| `dst_ip` | 目的地址 |
+| `start_ms` / `end_ms` | 片段区间（左闭右开） |
+| `status` | `assigned` / `ambiguous` / `unassigned` |
+| `owners` | `assigned` 为单元素列表，`ambiguous` 为排序后列表，否则为空 |
+| `bytes` | 该片段分摊到的整数字节 |
+| `dns_owners` | 指定版本内直接 A/AAAA 指向该 IP 的属主，去重排序；未指定时为空 |
+
+`out/summary.json`：`flows`、`fragments`、`bytes`、`status_bytes`
+（各状态总字节）、`owner_bytes`（各 assigned owner 的字节）。歧义字节
+只计入 `status_bytes.ambiguous`，不分配给任何候选 owner。附版本标签时另含
+`dns_version`。
+
+可选 `--repo/--zone/--serial` 三者必须同时给出：只读打开仓库，取**指定
+serial** 的直接 A/AAAA 记录属主作为资产标签，不解析别名、不查真实 DNS、
+不随当前区头变化、不写入原仓库；指定版本不存在则整批拒绝。
+
+### 交付与规模
+
+- 目标目录已存在 → 拒绝覆盖；整批校验、归属与核算都成功后才 `rename`
+  到位；任何失败都不留可误认成功的正式目录（临时工作目录会清理）。
+- 连接与归属行分块写入临时 SQLite 索引；查询走
+  `(family, prefix_key, prefix_len)` 索引，每条连接只探测数据中实际出现的
+  前缀长度，不逐连接全表扫描。内存上界是单条连接的候选行与合并片段；
+  明细流式写入磁盘，DNS 标签与 owner 汇总也在磁盘表里，SQLite 缓存各限
+  16 MB。
+- 可复现样例见 [`examples/attribute/`](examples/attribute/README.md)。
+
 ## 设计要点
 
 - **发布原子性**：版本行（`publishing`）+ 全量记录 + 头指针切换在同一个
@@ -133,3 +224,9 @@ python3 -m unittest discover -s tests -t .
 覆盖：相对名称展开、TTL 规则、增量前置 serial 冲突、三种删除形式、CNAME 环
 与冲突、TXT 转义、未知类型保留/拒绝、发布中断回滚与导出原子性、serial 回绕、
 区域边界、版本 diff、记录行号溯源、导出往返一致性。
+
+流量归属另有：手算的宽/窄网段六段用例、时间端点（左闭右开）、同前缀多归属、
+重复资料、中途回退宽网段、无关边界合并、字节守恒与余数规则、IPv6 `/0` 与
+IPv4-mapped 区分、历史版本 DNS 标签、坏行与重复 `flow_id` 整批拒绝、
+与独立毫秒枚举实现的随机交叉核对，以及 20 万归属行 × 20 万连接的生成数据
+运行（`tests/test_traffic.py`、`tests/bruteforce.py`）。

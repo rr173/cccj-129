@@ -1,0 +1,4 @@
+{"cidr": "10.0.0.0/8", "owner": "A", "valid_from_ms": 0, "valid_to_ms": 100}
+{"cidr": "10.0.0.0/16", "owner": "B", "valid_from_ms": 20, "valid_to_ms": 40}
+{"cidr": "10.0.0.0/24", "owner": "C", "valid_from_ms": 30, "valid_to_ms": 35}
+{"cidr": "2001:db8::/32", "owner": "v6", "valid_from_ms": 0, "valid_to_ms": 1000}
