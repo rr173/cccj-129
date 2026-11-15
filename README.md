@@ -24,6 +24,9 @@ SQLite 中可查询的不可变版本，支持版本差异、当前区查询与�
   （空白归一化），不参与任何语义解释，可正常导出与 diff
 - 查询与导出：按名称/类型查询当前区、区内 CNAME 链解析、任意两版本 diff、
   将任意版本渲染为规范主区文件并**原子写盘**（临时文件 + rename）
+- 离线批处理：流量归属（连接 × 网段 → 可分团队核算的字节明细）与证书透明度
+  观测导入（CT 观测 × 指定历史版本 → 待核查主机名发现）；两者都只读仓库、
+  不查真实 DNS、不发布记录
 
 ## 文件格式
 
@@ -104,6 +107,8 @@ python -m dnsrepo --db assets.db query example.com. www A
 python -m dnsrepo --db assets.db resolve example.com. alias A
 python -m dnsrepo --db assets.db diff example.com. 2024010100 2024010101
 python -m dnsrepo --db assets.db export example.com. -o example.com.zone
+python -m dnsrepo --db assets.db ct-import observations.jsonl out \
+    --repo assets.db --zone example.com. --serial 2024010100
 ```
 
 加 `--preserve-unknown` 后未知类型按原文保留。
@@ -199,6 +204,90 @@ serial** 的直接 A/AAAA 记录属主作为资产标签，不解析别名、不
   16 MB。
 - 可复现样例见 [`examples/attribute/`](examples/attribute/README.md)。
 
+## 离线证书透明度观测导入（批处理）
+
+安全同事从多个 CT 导出源收到证书观测记录（UTF-8 JSONL），批处理把它们变成
+一份**待核查发现清单**：某个已管理区域里曾公开出现、但指定已发布区域版本还
+没有收录的主机名，并保留哪些证书与来源支撑了每条线索。它**不发布 DNS 记
+录**，也不把证书出现解释为域名所有权证明。
+
+```
+python3 -m dnsrepo --db assets.db ct-import observations.jsonl out \
+    --repo assets.db --zone example.com. --serial 2024010100
+```
+
+可一次给多个观测文件（依次合并）：
+
+```
+python3 -m dnsrepo --db assets.db ct-import a.jsonl b.jsonl out \
+    --repo assets.db --zone example.com. --serial 2024010100
+```
+
+### 输入字段
+
+| 字段 | 规则 |
+| --- | --- |
+| `source` | 非空字符串，观测来源（导出源） |
+| `observed_at_ms` | 有符号 64 位整数 |
+| `certificate_sha256` | 64 位十六进制 SHA-256，比较/输出统一小写 |
+| `dns_names` | 字符串数组，可含重复与等价写法 |
+
+字段缺失、类型错误、无效摘要或无效主机名一律报 `文件:1起始行号` 并拒绝整批；
+失败不留下正式结果目录。空行与首字节 UTF-8 BOM 忽略。
+
+### 名称规范化与区域边界
+
+1. 去末尾根点、统一小写；国际化标签按标准库 IDNA(2003) 编成小写 A-label
+   （`bücher` ↔ `xn--bcher-kva`）。
+2. 非法标签、空标签、超长标签/名称、非最左侧通配符、多个通配符拒绝该行。
+3. 合法的最左侧 `*.` **保留为通配符线索**，绝不扩展成具体主机名。
+4. 名称必须落在 zone 标签边界内：`example.net.evil` 不属于 `example.net`。
+5. 区域顶点本身、以及**指定版本内已直接存在的属主名**不作为新发现输出。
+   区域记录与 CNAME 目标不会混入 CT 证据；CNAME 目标既不会因此变成
+   “已存在名称”，也不会被当作观测。
+
+### 合并规则
+
+- 按规范化名称合并；跨来源同一证书只计一张证书，同一证书内重复名称只计一次。
+- 完全相同的 `(source, certificate_sha256, observed_at_ms)` 重复行折叠；
+  该键对应不同的规范化名称集合时**整批拒绝**并指出首次出现的位置与冲突行。
+- 同一规范名同时有普通证书和通配符观测时分别成行，通配符与其覆盖的具体名称
+  之间互不推断。
+- 明细按规范化名称排序，证书、来源与证据列表稳定排序；输入行重排或重复不改变
+  汇总数值与证据集合。
+
+### 输出
+
+`out/findings.jsonl`（按 `name` 排序）：
+
+| 字段 | 说明 |
+| --- | --- |
+| `name` | 规范化小写 ASCII 绝对名（带末尾根点），通配符保留最左侧 `*.` |
+| `wildcard` | 是否为通配符线索 |
+| `first_observed_at_ms` / `last_observed_at_ms` | 该名称全部观测的最早/最晚时间 |
+| `certificate_count` / `certificates` | 去重证书数 / 排序后的 SHA-256 列表 |
+| `sources` | 排序后的来源列表 |
+| `evidence` | 按 `(source, certificate_sha256)` 排序：来源、摘要、首末观测时间、观测次数 |
+
+`out/summary.json`：`input`（文件、行数、观测数、名称出现次数、折叠重复数、
+名称数）、`certificates`（观测证书数 / 支撑发现的证书数）、`findings`（名称数、
+通配符数、普通名称数、证据观测数、证书数）、`excluded`（`out_of_zone`、
+`zone_apex`、`existing`）、`observed_at_ms`（全局最早/最晚，空输入为
+`null`）、`zone`（固定读取的 zone/serial 与该版本记录数）、`sources`
+（按来源的观测/重复/证书/发现数与时间范围）。`out/notes.md` 是处理说明。
+
+### 只读、原子交付与规模
+
+- `--repo` 指向已有仓库，`--zone`/`--serial` 必须指向一个**已发布版本**；
+  以 `mode=ro`（无 `-wal` 时再加 `immutable=1`）只读打开，不跟随当前区头、
+  不写入仓库，也不留下 `-wal`/`-shm` 旁文件。
+- 目标目录已存在 → 拒绝覆盖；整批校验、合并与汇总成功后才 `rename` 到位，
+  任何失败都不留可误认成功的目录。
+- 观测、名称与证书合并全部落在临时 SQLite 索引（`cache_size` 各限 16 MB），
+  明细逐行流式写出，不把观测、证书或名称映射常驻内存。20 万观测、约 2 万个
+  发现名称、约 5000 张证书的生成数据（37 MB 输入）峰值 RSS 约 35 MB。
+- 可复现样例见 [`examples/ct/`](examples/ct/README.md)。
+
 ## 设计要点
 
 - **发布原子性**：版本行（`publishing`）+ 全量记录 + 头指针切换在同一个
@@ -230,3 +319,9 @@ python3 -m unittest discover -s tests -t .
 IPv4-mapped 区分、历史版本 DNS 标签、坏行与重复 `flow_id` 整批拒绝、
 与独立毫秒枚举实现的随机交叉核对，以及 20 万归属行 × 20 万连接的生成数据
 运行（`tests/test_traffic.py`、`tests/bruteforce.py`）。
+
+证书透明度导入另有：跨源重复证书、证书内重复名称、国际化等价写法、根点与
+大小写归一、zone 标签边界、历史 serial 固定、通配符不扩展、普通名称与通配符
+分开成行、冲突重复键整批拒绝、空输入、坏行行号、只读仓库不留旁文件、
+行重排与重复不改变输出，以及与独立字典实现的随机交叉核对和 20 万观测的生成
+数据运行（`tests/test_ct.py`、`tests/ct_reference.py`）。

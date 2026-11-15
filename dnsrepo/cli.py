@@ -3,6 +3,7 @@
 import argparse
 import sys
 
+from .ct import import_ct_observations
 from .errors import ZoneError
 from .repo import Repository
 from .traffic import attribute_flows
@@ -100,6 +101,22 @@ def cmd_attribute(args):
     return 0
 
 
+def cmd_ct_import(args):
+    result = import_ct_observations(
+        args.observations, args.output, args.repo, args.zone, args.serial)
+    print("imported %d observations (%d duplicate lines) for %s serial %d"
+          % (result.observations, result.duplicates,
+             result.zone, result.serial))
+    print("findings: %d names (%d wildcard, %d plain)"
+          % (result.findings, result.wildcards,
+             result.findings - result.wildcards))
+    for reason in ("out_of_zone", "zone_apex", "existing"):
+        print("%s: %d name occurrences" % (reason,
+                                           result.excluded.get(reason, 0)))
+    print("wrote %s" % result.output)
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="dnsrepo",
@@ -161,6 +178,21 @@ def build_parser():
     p.add_argument("--serial", type=int,
                    help="published serial whose A/AAAA owners are attached")
     p.set_defaults(func=cmd_attribute)
+
+    p = sub.add_parser(
+        "ct-import",
+        help="import CT certificate observations as review findings "
+             "(offline batch)")
+    p.add_argument("observations", nargs="+",
+                   help="CT observation JSONL file(s)")
+    p.add_argument("output", help="output directory (must not exist)")
+    p.add_argument("--repo", required=True,
+                   help="repository holding the pinned zone version")
+    p.add_argument("--zone", required=True,
+                   help="zone whose version defines the scope")
+    p.add_argument("--serial", required=True, type=int,
+                   help="published serial whose records suppress findings")
+    p.set_defaults(func=cmd_ct_import)
 
     return parser
 

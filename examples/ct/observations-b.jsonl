@@ -1,0 +1,2 @@
+{"source":"ct-log-b","observed_at_ms":1700000200000,"certificate_sha256":"684de513bbf4d61010bc032d000a21c303ab0a6baedd281747634fa4d3457e8b","dns_names":["*.wild.example.com","example.net.evil"]}
+{"source":"ct-log-c","observed_at_ms":1700000300000,"certificate_sha256":"20c84cbf4cc2b981d6a705b441a65261da6ad20f643b3d2d70143fd5db732edf","dns_names":["www.example.com","example.com.","deep.new.example.com"]}

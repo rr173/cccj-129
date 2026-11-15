@@ -9,6 +9,7 @@ from .errors import (BatchError, CNAMEConflictError, CNAMELoopError,
                      DeltaError, OutOfZoneError, ParseError, PrereqError,
                      SerialError, UnknownTypeError, ValidationError,
                      ZoneError)
+from .ct import CtResult, import_ct_observations, normalize_name
 from .increment import apply_increment, parse_increment
 from .repo import Repository
 from .records import Record, serial_gt
@@ -27,6 +28,9 @@ __all__ = [
     "validate_zone",
     "serial_gt",
     "attribute_flows",
+    "import_ct_observations",
+    "normalize_name",
+    "CtResult",
     "ZoneError",
     "ParseError",
     "UnknownTypeError",
