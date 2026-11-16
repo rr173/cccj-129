@@ -1,0 +1,13 @@
+; generated signed snapshot
+$ORIGIN mid.example.
+$TTL 3600
+mid.example.	3600	IN	SOA	ns1.mid.example. hostmaster.mid.example. 2600 7200 3600 1209600 3600
+mid.example.	3600	IN	NS	ns1.mid.example.
+mid.example.	3600	IN	DNSKEY	257 3 13 vDE19Ld+8/PoIWxqJxlKV+EypoWXqPkbzvjvFCFULlheVhA+UjM71D08nJcIaFbn7x43yJYV+sh2MHi1X4wE6Q==
+deep.mid.example.	3600	IN	NS	ns1.deep.mid.example.
+ns1.deep.mid.example.	3600	IN	A	192.0.2.40
+deep.mid.example.	3600	IN	DS	13281 13 2 62e841f4d2612daf6480558c69f0c04f4062d8adb6765695fb22020d32f56f96
+mid.example.	3600	IN	RRSIG	SOA 13 2 3600 1700086400 1699913600 52922 mid.example. 41Ud6vP0W40aYYDyqoqunaFyAXYXTohyH8rmXtKHAVWdJIWP+FuCoReKGTqTrBwMXSc0WA0HNejKHMdk35jvpQ==
+mid.example.	3600	IN	RRSIG	NS 13 2 3600 1700086400 1699913600 52922 mid.example. V4iIZ1ii5iMZBAqAYQfVdFORrN3VmmlS4Z+w0hYZZPkBECH59wElUNf7H83EjR8SH0NMmpRbtwBzplAX09oNsg==
+mid.example.	3600	IN	RRSIG	DNSKEY 13 2 3600 1700086400 1699913600 52922 mid.example. 0YZm2MkSBmSYq9A6BAUb+2JoRG3FjYnXIIKSWjLhxu78kkqw7xH4fchmW0rW/WWv+Lv/zvsTdDoD4otOejbpqA==
+deep.mid.example.	3600	IN	RRSIG	DS 13 3 3600 1700086400 1699913600 52922 mid.example. dl5o+99ccEm5e5+5Xkz5OOcVcqfWObtPMeudcH36d5hbZmv8FXZBgyNGwXTnzyUEBzgShl91RmIFn9PZR8vsww==

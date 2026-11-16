@@ -1,0 +1,15 @@
+{
+  "anchors": [
+    {
+      "zone": "example.",
+      "record": {
+        "type": "DS",
+        "key_tag": 20919,
+        "algorithm": 13,
+        "digest_type": 2,
+        "digest": "c87aebab795dd977053ba984347b64adce3c77b480fa98ca227c3ef4923a5ba9"
+      },
+      "source": "test anchor"
+    }
+  ]
+}

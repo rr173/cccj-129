@@ -1,0 +1,26 @@
+{
+  "anchors": [
+    {
+      "zone": "example.",
+      "record": {
+        "type": "DS",
+        "key_tag": 24862,
+        "algorithm": 13,
+        "digest_type": 2,
+        "digest": "7e2c2e0c48a0401b63d912c9962f4b0768ae66b900385008eadf07c60e2503bc"
+      },
+      "source": "rollover test trust anchor"
+    },
+    {
+      "zone": "example.",
+      "record": {
+        "type": "DNSKEY",
+        "flags": 257,
+        "protocol": 3,
+        "algorithm": 13,
+        "pubkey": "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMA=="
+      },
+      "source": "conflicting dnskey anchor"
+    }
+  ]
+}

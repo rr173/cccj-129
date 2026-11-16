@@ -1,0 +1,26 @@
+; generated signed snapshot
+$ORIGIN sub.example.
+$TTL 3600
+sub.example.	3600	IN	SOA	ns1.sub.example. hostmaster.sub.example. 2000 7200 3600 1209600 3600
+sub.example.	3600	IN	NS	ns1.sub.example.
+sub.example.	3600	IN	DNSKEY	257 3 13 BJTyyJPGHfKade0XPsqEPD4mc+o1luqOhfmMIavExKR+DmK0F6f2cPyoPF/SE7GduaHqQxdaBtuL6htJvaT5hA==
+sub.example.	3600	IN	DNSKEY	257 3 13 trb8lnuspuALqQUu+USsNePRlXj7I592fwmGAVaREcjHeE6SOqFBNcfUmcphVxG17dZQ7HpEiv6bLkGTwiifBA==
+www.sub.example.	3600	IN	A	198.51.100.7
+www.sub.example.	3600	IN	A	198.51.100.8
+info.sub.example.	3600	IN	TXT	"v=spf1 -all"
+mail.sub.example.	3600	IN	MX	10 mailhub.sub.example.
+*.wild.sub.example.	3600	IN	A	203.0.113.9
+sub.example.	3600	IN	RRSIG	SOA 13 2 3600 1699996400 1699827200 6271 sub.example. 7QqQKrdsbmsqBqgIs8FsqQQLiqhW3Qes5Ct7QlF8WmRxFe99hxpeSJZS4/OkYh5UEyc70t1CZShpTH7lNuuLJw==
+sub.example.	3600	IN	RRSIG	SOA 13 2 3600 1700086400 1699913600 64006 sub.example. dD6OIIucfZAPLMiQkYzCJJQP4iOlOGnYeVGwOA55ALfAebYlmMBR0/z/Lhn1t3/TQ2Llri1alDO/272UxreJXA==
+sub.example.	3600	IN	RRSIG	NS 13 2 3600 1699996400 1699827200 6271 sub.example. cCyw0pMqAxp856XA0cKV/BY6VGoLQlCEuasRHAtATFVD8n4fnuWKd/5JfKJXqHkVZGUumtaWE2Cruvfsq4ViIg==
+sub.example.	3600	IN	RRSIG	NS 13 2 3600 1700086400 1699913600 64006 sub.example. dOrI9qYkeJXaulJNkbShLGsBrMza0FJwTrgDD1BG+LcZVPJdeEyZtR90YVdIKrr5vXnzb6mhkBxxvUd+K3q01Q==
+sub.example.	3600	IN	RRSIG	DNSKEY 13 2 3600 1699996400 1699827200 6271 sub.example. HTP+cYf+5Zpdo1h/lsgH7g2lkwkecP7iKF39gElSouQgpslaRH5+PwBbc62Vdbbb7U2jtpH3lBtap4rAqQSmXg==
+sub.example.	3600	IN	RRSIG	DNSKEY 13 2 3600 1700086400 1699913600 64006 sub.example. 8W6KFb9jr5a8cbtV2EEumBZEL9NDvK4WEtWLIeO8hLD4KCPhysg2qd+AYZzsm4TxphLmvk0RGDo9igZA7uk/2A==
+www.sub.example.	3600	IN	RRSIG	A 13 3 3600 1699996400 1699827200 6271 sub.example. MpEyobwBQ1cKjz0kasBODHaoab4+d/ffI0J6lloEK2AMrmBzgIWACToGHpglYv80kHk9V5K39n78Na6bxw3+5w==
+www.sub.example.	3600	IN	RRSIG	A 13 3 3600 1700086400 1699913600 64006 sub.example. VOKgi17dU9GQEAuodxg81MnmEJI4yKmNfcF5kw2quQbBVBkgz7nBKZj9Pp8QIt5vZguTUJXvOiZszSJXM5RcKg==
+info.sub.example.	3600	IN	RRSIG	TXT 13 3 3600 1699996400 1699827200 6271 sub.example. 5sOKTZ6U7WQGCi1p0gD1hRb/gHKGhhng2QoXZpKty9sxdlTfvWXgoCxOBpiyiMmKI6ybpatNxsjhOVf9yQcfjA==
+info.sub.example.	3600	IN	RRSIG	TXT 13 3 3600 1700086400 1699913600 64006 sub.example. TYhQYkuxsu6oW0ltvsfqBFe5dRPh6/GJlY4+Fe5kDkwukKlJHVlZ+mdYBd4CppS3bj5dC2ka4N2up4737DqHqw==
+mail.sub.example.	3600	IN	RRSIG	MX 13 3 3600 1699996400 1699827200 6271 sub.example. 70KWQR4d325LmlZQHuPCtlC6VYtF3FO/buo/jnhlB3SEEOcygR4mxM4jH7mxwek+OqGpq7pMYo577kHkdMQ2Dg==
+mail.sub.example.	3600	IN	RRSIG	MX 13 3 3600 1700086400 1699913600 64006 sub.example. MWkSXi9Jjp3PbRDAFuo5CIobXXtjovWvOaXmaqwZ6g0415FvoM81ZpFyxojjmEzGNVHmGh2GI39W0JG5DnKQoA==
+*.wild.sub.example.	3600	IN	RRSIG	A 13 3 3600 1699996400 1699827200 6271 sub.example. nA4E/GUfl2dZeJLSb8eSVn+t0XLCHHSP6m2k/UEKsK2ZHqY+lkqRCElykOLtG5LF65kBYl993TbFRumb9LsQCA==
+*.wild.sub.example.	3600	IN	RRSIG	A 13 3 3600 1700086400 1699913600 64006 sub.example. b41yaiyF1rTzXauTmezmUExeE/xWdgLyb2BUGxLMXQF1LY+yNm49dc+/fv5ALEfiQyOvOjNpIfb9LmacZmFs9g==

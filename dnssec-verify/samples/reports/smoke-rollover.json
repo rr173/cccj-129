@@ -1,0 +1,668 @@
+{
+  "db_checksum_after": {
+    "max_line": 26,
+    "record_count": 36,
+    "weighted_sum": 138188
+  },
+  "db_checksum_before": {
+    "max_line": 26,
+    "record_count": 36,
+    "weighted_sum": 138188
+  },
+  "db_unchanged": true,
+  "findings": [
+    {
+      "code": "RRSIG_INVALID",
+      "key_tag": 52683,
+      "level": "FAIL",
+      "message": "*.wild.sub.example. A RRSIG tag 52683: signature expired (expiration 1699996400 < 1700000000)",
+      "owner": "*.wild.sub.example.",
+      "rtype": "A",
+      "serial": 2000,
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 25
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 10
+        }
+      ],
+      "zone": "sub.example."
+    },
+    {
+      "code": "RRSIG_INVALID",
+      "key_tag": 52683,
+      "level": "FAIL",
+      "message": "info.sub.example. TXT RRSIG tag 52683: signature expired (expiration 1699996400 < 1700000000)",
+      "owner": "info.sub.example.",
+      "rtype": "TXT",
+      "serial": 2000,
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 21
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 10
+        }
+      ],
+      "zone": "sub.example."
+    },
+    {
+      "code": "RRSIG_INVALID",
+      "key_tag": 52683,
+      "level": "FAIL",
+      "message": "mail.sub.example. MX RRSIG tag 52683: signature expired (expiration 1699996400 < 1700000000)",
+      "owner": "mail.sub.example.",
+      "rtype": "MX",
+      "serial": 2000,
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 23
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 10
+        }
+      ],
+      "zone": "sub.example."
+    },
+    {
+      "code": "RRSIG_INVALID",
+      "key_tag": 52683,
+      "level": "FAIL",
+      "message": "sub.example. SOA RRSIG tag 52683: signature expired (expiration 1699996400 < 1700000000)",
+      "owner": "sub.example.",
+      "rtype": "SOA",
+      "serial": 2000,
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 13
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 10
+        }
+      ],
+      "zone": "sub.example."
+    },
+    {
+      "code": "RRSIG_INVALID",
+      "key_tag": 52683,
+      "level": "FAIL",
+      "message": "sub.example. NS RRSIG tag 52683: signature expired (expiration 1699996400 < 1700000000)",
+      "owner": "sub.example.",
+      "rtype": "NS",
+      "serial": 2000,
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 15
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 10
+        }
+      ],
+      "zone": "sub.example."
+    },
+    {
+      "code": "RRSIG_INVALID",
+      "key_tag": 52683,
+      "level": "FAIL",
+      "message": "sub.example. DNSKEY RRSIG tag 52683: signature expired (expiration 1699996400 < 1700000000)",
+      "owner": "sub.example.",
+      "rtype": "DNSKEY",
+      "serial": 2000,
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 17
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 10
+        }
+      ],
+      "zone": "sub.example."
+    },
+    {
+      "code": "RRSIG_INVALID",
+      "key_tag": 52683,
+      "level": "FAIL",
+      "message": "www.sub.example. A RRSIG tag 52683: signature expired (expiration 1699996400 < 1700000000)",
+      "owner": "www.sub.example.",
+      "rtype": "A",
+      "serial": 2000,
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 19
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 10
+        }
+      ],
+      "zone": "sub.example."
+    }
+  ],
+  "overall_verdict": "PASS",
+  "rrset_results": [
+    {
+      "member_count": 1,
+      "owner": "example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "NS",
+      "serial": 1000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 57366,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+            "line": 13
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 5
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "SOA",
+      "serial": 1000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 57366,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+            "line": 12
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 4
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "DNSKEY",
+      "serial": 1000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 57366,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+            "line": 14
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 6
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "ns1.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "A",
+      "serial": 1000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 57366,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+            "line": 15
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 7
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "ns1.sub.example.",
+      "reason": "skipped: parent-side glue/NS below a zone cut is not signed by the parent (RFC 4035)",
+      "rtype": "A",
+      "serial": 1000,
+      "signature_attempts": [],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 9
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "sub.example.",
+      "reason": "skipped: parent-side glue/NS below a zone cut is not signed by the parent (RFC 4035)",
+      "rtype": "NS",
+      "serial": 1000,
+      "signature_attempts": [],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 8
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 2,
+      "owner": "sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "DS",
+      "serial": 1000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 57366,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+            "line": 16
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 10
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 11
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 2,
+      "owner": "sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "DS",
+      "serial": 1000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 57366,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+            "line": 16
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 10
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/example-1000.zone",
+          "line": 11
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "*.wild.sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "A",
+      "serial": 2000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 52683,
+          "ok": false,
+          "reason": "signature expired (expiration 1699996400 < 1700000000)",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 25
+          }
+        },
+        {
+          "algorithm": 13,
+          "key_tag": 13129,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 26
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 12
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "sub.example."
+    },
+    {
+      "member_count": 1,
+      "owner": "info.sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "TXT",
+      "serial": 2000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 52683,
+          "ok": false,
+          "reason": "signature expired (expiration 1699996400 < 1700000000)",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 21
+          }
+        },
+        {
+          "algorithm": 13,
+          "key_tag": 13129,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 22
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 10
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "sub.example."
+    },
+    {
+      "member_count": 1,
+      "owner": "mail.sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "MX",
+      "serial": 2000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 52683,
+          "ok": false,
+          "reason": "signature expired (expiration 1699996400 < 1700000000)",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 23
+          }
+        },
+        {
+          "algorithm": 13,
+          "key_tag": 13129,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 24
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 11
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "sub.example."
+    },
+    {
+      "member_count": 1,
+      "owner": "sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "NS",
+      "serial": 2000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 52683,
+          "ok": false,
+          "reason": "signature expired (expiration 1699996400 < 1700000000)",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 15
+          }
+        },
+        {
+          "algorithm": 13,
+          "key_tag": 13129,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 16
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 5
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "sub.example."
+    },
+    {
+      "member_count": 1,
+      "owner": "sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "SOA",
+      "serial": 2000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 52683,
+          "ok": false,
+          "reason": "signature expired (expiration 1699996400 < 1700000000)",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 13
+          }
+        },
+        {
+          "algorithm": 13,
+          "key_tag": 13129,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 14
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 4
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "sub.example."
+    },
+    {
+      "member_count": 2,
+      "owner": "sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "DNSKEY",
+      "serial": 2000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 52683,
+          "ok": false,
+          "reason": "signature expired (expiration 1699996400 < 1700000000)",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 17
+          }
+        },
+        {
+          "algorithm": 13,
+          "key_tag": 13129,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 18
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 6
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 7
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "sub.example."
+    },
+    {
+      "member_count": 2,
+      "owner": "www.sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "A",
+      "serial": 2000,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 52683,
+          "ok": false,
+          "reason": "signature expired (expiration 1699996400 < 1700000000)",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 19
+          }
+        },
+        {
+          "algorithm": 13,
+          "key_tag": 13129,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+            "line": 20
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 8
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/rollover/sub.example-2000.zone",
+          "line": 9
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "sub.example."
+    }
+  ],
+  "status": "OK",
+  "verification_time_utc": "2023-11-14T22:13:20Z",
+  "zones": [
+    {
+      "rrset_count": 8,
+      "rrset_verdicts": {
+        "FAIL": 0,
+        "INCONCLUSIVE": 0,
+        "PASS": 8
+      },
+      "serial": 1000,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "rrset_count": 7,
+      "rrset_verdicts": {
+        "FAIL": 0,
+        "INCONCLUSIVE": 0,
+        "PASS": 7
+      },
+      "serial": 2000,
+      "verdict": "PASS",
+      "zone": "sub.example."
+    }
+  ]
+}

@@ -1,0 +1,274 @@
+{
+  "db_checksum_after": {
+    "max_line": 26,
+    "record_count": 149,
+    "weighted_sum": 569742
+  },
+  "db_checksum_before": {
+    "max_line": 26,
+    "record_count": 149,
+    "weighted_sum": 569742
+  },
+  "db_unchanged": true,
+  "findings": [
+    {
+      "code": "CHAIN_NO_MATCHING_KEY",
+      "level": "FAIL",
+      "message": "no DNSKEY in sub.example.=2100 matches any authenticated DS record (digest mismatch)",
+      "owner": "sub.example.",
+      "rtype": "DS",
+      "serial": 1100,
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+          "line": 9
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/sub.example-2100.zone",
+          "line": 6
+        }
+      ],
+      "zone": "example."
+    },
+    {
+      "code": "DS_DIGEST_MISMATCH",
+      "key_tag": 19571,
+      "level": "FAIL",
+      "message": "DS tag 19571 alg 13 at sub.example. does not digest the matching DNSKEY wire data (DS digest does not match DNSKEY wire data)",
+      "owner": "sub.example.",
+      "rtype": "DS",
+      "serial": 1100,
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+          "line": 9
+        },
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/sub.example-2100.zone",
+          "line": 6
+        }
+      ],
+      "zone": "example."
+    }
+  ],
+  "overall_verdict": "FAIL",
+  "rrset_results": [
+    {
+      "member_count": 1,
+      "owner": "example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "NS",
+      "serial": 1100,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 34027,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+            "line": 11
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+          "line": 5
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "SOA",
+      "serial": 1100,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 34027,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+            "line": 10
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+          "line": 4
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "DNSKEY",
+      "serial": 1100,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 34027,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+            "line": 12
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+          "line": 6
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "ns1.sub.example.",
+      "reason": "skipped: parent-side glue/NS below a zone cut is not signed by the parent (RFC 4035)",
+      "rtype": "A",
+      "serial": 1100,
+      "signature_attempts": [],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+          "line": 8
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "sub.example.",
+      "reason": "skipped: parent-side glue/NS below a zone cut is not signed by the parent (RFC 4035)",
+      "rtype": "NS",
+      "serial": 1100,
+      "signature_attempts": [],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+          "line": 7
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "DS",
+      "serial": 1100,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 34027,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+            "line": 13
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+          "line": 9
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "sub.example.",
+      "reason": "at least one RRSIG validated with an authenticated key",
+      "rtype": "DS",
+      "serial": 1100,
+      "signature_attempts": [
+        {
+          "algorithm": 13,
+          "key_tag": 34027,
+          "ok": true,
+          "reason": "ok",
+          "source": {
+            "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+            "line": 13
+          }
+        }
+      ],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/example-1100.zone",
+          "line": 9
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "member_count": 1,
+      "owner": "sub.example.",
+      "reason": "no DS record authenticates any child DNSKEY",
+      "rtype": "DNSKEY",
+      "serial": 2100,
+      "signature_attempts": [],
+      "sources": [
+        {
+          "file": "/workspace/dnssec-verify/samples/fixtures/spoof/sub.example-2100.zone",
+          "line": 6
+        }
+      ],
+      "ttl": 3600,
+      "verdict": "FAIL",
+      "zone": "sub.example."
+    }
+  ],
+  "status": "OK",
+  "verification_time_utc": "2023-11-14T22:13:20Z",
+  "zones": [
+    {
+      "rrset_count": 7,
+      "rrset_verdicts": {
+        "FAIL": 0,
+        "INCONCLUSIVE": 0,
+        "PASS": 7
+      },
+      "serial": 1100,
+      "verdict": "PASS",
+      "zone": "example."
+    },
+    {
+      "rrset_count": 1,
+      "rrset_verdicts": {
+        "FAIL": 1,
+        "INCONCLUSIVE": 0,
+        "PASS": 0
+      },
+      "serial": 2100,
+      "verdict": "FAIL",
+      "zone": "sub.example."
+    }
+  ]
+}
